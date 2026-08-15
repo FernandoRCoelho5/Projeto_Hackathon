@@ -9,6 +9,7 @@ const LINKS: { to: string; label: string; roles: Role[] }[] = [
   { to: "/registro", label: "Registro", roles: ["administrador", "tecnico"] },
   { to: "/equipamentos", label: "Equipamentos", roles: ["administrador", "tecnico"] },
   { to: "/calculadora", label: "Impacto", roles: ["administrador"] },
+  { to: "/usuarios", label: "Usuários", roles: ["administrador"] },
 ];
 
 export function NavBar({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {

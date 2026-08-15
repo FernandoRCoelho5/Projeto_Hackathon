@@ -6,6 +6,7 @@ import { ticketsRouter } from "./routes/tickets.js";
 import { simulationRouter } from "./routes/simulation.js";
 import { maintenanceEventsRouter } from "./routes/maintenanceEvents.js";
 import { documentsRouter } from "./routes/documents.js";
+import { usersRouter } from "./routes/users.js";
 import { requireAuth } from "./auth.js";
 
 export const app = express();
@@ -26,3 +27,4 @@ app.use("/api", requireAuth, metaRouter);
 app.use("/api", requireAuth, ticketsRouter);
 app.use("/api", requireAuth, simulationRouter);
 app.use("/api", requireAuth, maintenanceEventsRouter);
+app.use("/api", requireAuth, usersRouter);

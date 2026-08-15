@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { clearSession, getToken } from "./session";
-import type { AuthUser, Dossie, MaintenanceEvent, Machine, Ticket, TipoEventoManutencao } from "./types";
+import type {
+  AuthUser,
+  Dossie,
+  Especialidade,
+  MaintenanceEvent,
+  Machine,
+  Role,
+  Ticket,
+  TipoEventoManutencao,
+} from "./types";
 
 // Em dev, o proxy do Vite encaminha /api pro server local (vite.config.ts).
 // Em produção, se client e server forem projetos Vercel separados (domínios
@@ -56,6 +65,14 @@ export const api = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  getUsers: () => request<AuthUser[]>("/users"),
+  createUser: (input: {
+    nome: string;
+    username: string;
+    senha: string;
+    role: Role;
+    especialidade?: Especialidade;
+  }) => request<AuthUser>("/users", { method: "POST", body: JSON.stringify(input) }),
 };
 
 export function useTickets(pollMs = 2000) {

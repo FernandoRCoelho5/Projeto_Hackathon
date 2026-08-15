@@ -138,9 +138,19 @@ export function TicketCard({
         </p>
 
         {ticket.status === "fechado" ? (
-          <span className="text-sm font-semibold text-ok-500">
-            MTTR: {ticket.mttrMs !== null ? Math.round(ticket.mttrMs / 60000) : "—"} min
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-ok-500">
+              MTTR: {ticket.mttrMs !== null ? Math.round(ticket.mttrMs / 60000) : "—"} min
+            </span>
+            <a
+              href={`${BASE}/documents/relatorio-chamado/${ticket.id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-base-600 bg-base-900/60 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:border-accent-500 hover:text-white"
+            >
+              📄 Relatório
+            </a>
+          </div>
         ) : onClose ? (
           <button
             onClick={handleClose}

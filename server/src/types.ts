@@ -16,12 +16,9 @@ export interface AuthUser {
   id: string;
   nome: string;
   username: string;
-  senha: string;
   role: Role;
   especialidade?: Especialidade;
 }
-
-export type PublicUser = Omit<AuthUser, "senha">;
 
 export interface Machine {
   id: string;

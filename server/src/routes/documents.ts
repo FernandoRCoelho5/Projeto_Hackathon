@@ -150,3 +150,75 @@ documentsRouter.get("/documents/relatorio-manutencao/:eventoId", async (req, res
   res.setHeader("Content-Disposition", `inline; filename="relatorio-${evento.id}.pdf"`);
   res.send(pdf);
 });
+
+// Relatório gerado direto do chamado assim que ele é encerrado — não depende
+// de alguém ter registrado um evento de manutenção manual (fluxo de
+// Registro). É o link "Gerar relatório" que aparece em Em andamento.
+documentsRouter.get("/documents/relatorio-chamado/:ticketId", async (req, res) => {
+  const ticket = getTicketById(req.params.ticketId);
+  if (!ticket) {
+    res.status(404).json({ error: "Chamado não encontrado." });
+    return;
+  }
+  if (ticket.status !== "fechado") {
+    res.status(409).json({ error: "O relatório só fica disponível depois que o chamado é encerrado." });
+    return;
+  }
+
+  const machine = getMachineByName(ticket.maquina);
+
+  const secoes: PdfSection[] = [
+    {
+      heading: "Máquina",
+      lines: [
+        `Nome: ${ticket.maquina}`,
+        ...(machine
+          ? [
+              `Setor: ${machine.setor}`,
+              `Modelo: ${machine.modelo}`,
+              `Fabricante: ${machine.fabricante}`,
+              `Criticidade: ${CRITICIDADE_LABELS[machine.criticidade]}`,
+            ]
+          : []),
+      ],
+    },
+    {
+      heading: "Chamado",
+      lines: [
+        ...(ticket.codigoFalha ? [`Código de falha: ${ticket.codigoFalha}`] : []),
+        `Descrição: ${ticket.descricao}`,
+        `Prioridade: ${ticket.prioridade}`,
+        `Especialidade: ${ticket.especialidade}`,
+        `Origem: ${ticket.origem === "simulado" ? "Simulação" : "Manual"}`,
+      ],
+    },
+    {
+      heading: "Atendimento",
+      lines: [
+        `Assumido por: ${ticket.assumidoPor?.nome ?? "—"}`,
+        `Aberto em: ${new Date(ticket.abertoEm).toLocaleString("pt-BR")}`,
+        `Encerrado em: ${ticket.fechadoEm ? new Date(ticket.fechadoEm).toLocaleString("pt-BR") : "—"}`,
+        `MTTR: ${ticket.mttrMs !== null ? `${Math.round(ticket.mttrMs / 60000)} min` : "—"}`,
+      ],
+    },
+    ...(ticket.checklist.length > 0 ? [{ heading: "Checklist", lines: ticket.checklist }] : []),
+    ...(ticket.telemetria.length > 0
+      ? [{ heading: "Telemetria no momento da abertura", lines: ticket.telemetria }]
+      : []),
+  ];
+
+  const pdf = await renderTextPdf({
+    titulo: `Relatório de Manutenção — ${ticket.maquina}`,
+    subtitulo: [
+      ticket.codigoFalha,
+      ticket.fechadoEm ? `Encerrado em ${new Date(ticket.fechadoEm).toLocaleDateString("pt-BR")}` : undefined,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    secoes,
+  });
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `inline; filename="relatorio-chamado-${ticket.id}.pdf"`);
+  res.send(pdf);
+});

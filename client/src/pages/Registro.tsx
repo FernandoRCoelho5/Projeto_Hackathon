@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, useMachines } from "../lib/api";
+import { api, BASE, useMachines } from "../lib/api";
 import type { AuthUser, Dossie, MaintenanceEvent } from "../lib/types";
 import { formatDateTime, formatDurationShort } from "../lib/format";
 import { StatTile } from "../components/StatTile";
@@ -199,6 +199,7 @@ export function Registro({ user }: { user: AuthUser }) {
                       <th className="px-4 py-2.5">Aberto em</th>
                       <th className="px-4 py-2.5">Encerrado em</th>
                       <th className="px-4 py-2.5 text-right">MTTR</th>
+                      <th className="px-4 py-2.5 text-right">Relatório</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -214,6 +215,16 @@ export function Registro({ user }: { user: AuthUser }) {
                         </td>
                         <td className="px-4 py-2.5 text-right font-mono font-semibold text-accent-400">
                           {formatDurationShort(c.mttrMs)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <a
+                            href={`${BASE}/documents/relatorio-chamado/${c.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-base-600 bg-base-900/60 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:border-accent-500 hover:text-white"
+                          >
+                            📄 Ver
+                          </a>
                         </td>
                       </tr>
                     ))}
