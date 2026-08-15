@@ -15,7 +15,7 @@ maintenanceEventsRouter.get("/machines/:maquina/eventos", (req, res) => {
 
 maintenanceEventsRouter.post(
   "/machines/:maquina/eventos",
-  requireRole("team-leader"),
+  requireRole("administrador"),
   (req, res) => {
     const maquina = decodeURIComponent(req.params.maquina);
     if (!MACHINE_NAMES.includes(maquina)) {

@@ -48,7 +48,7 @@ export function EmAndamento({ user }: { user: AuthUser }) {
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {emAndamento.map((ticket) => {
             const isOwner = ticket.assumidoPor?.id === user.id;
-            const canClose = isOwner || user.role === "team-leader";
+            const canClose = isOwner || user.role === "administrador";
             return (
               <TicketCard
                 key={ticket.id}

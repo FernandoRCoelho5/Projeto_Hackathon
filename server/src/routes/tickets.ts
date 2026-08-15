@@ -1,11 +1,8 @@
 import { Router } from "express";
-import { MACHINE_NAMES } from "../data/machines.js";
-import { classifyWithAI } from "../ai.js";
 import { requireRole } from "../auth.js";
 import {
   claimTicket,
   closeTicket,
-  createTicket,
   getDossie,
   getRealDemoMttr,
   listTickets,
@@ -18,43 +15,16 @@ ticketsRouter.get("/tickets", (_req, res) => {
   res.json(listTickets());
 });
 
-ticketsRouter.post("/tickets", requireRole("funcionario", "team-leader"), async (req, res) => {
-  const { maquina, descricao } = req.body ?? {};
-
-  if (typeof maquina !== "string" || !MACHINE_NAMES.includes(maquina)) {
-    res.status(400).json({ error: "Máquina/linha inválida." });
-    return;
-  }
-  if (typeof descricao !== "string" || descricao.trim().length === 0) {
-    res.status(400).json({ error: "Descrição do problema é obrigatória." });
-    return;
-  }
-
-  const classification = await classifyWithAI(descricao.trim());
-
-  const ticket = createTicket({
-    maquina,
-    descricao: descricao.trim(),
-    prioridade: classification.prioridade,
-    especialidade: classification.especialidade,
-    checklist: classification.checklist,
-    telemetria: [],
-    origem: "manual",
-  });
-
-  res.status(201).json(ticket);
-});
-
 ticketsRouter.post(
   "/tickets/simulate",
-  requireRole("team-leader"),
+  requireRole("administrador"),
   (_req, res) => {
     const ticket = generateSimulatedTicket();
     res.status(201).json(ticket);
   },
 );
 
-ticketsRouter.post("/tickets/:id/claim", requireRole("manutencao"), (req, res) => {
+ticketsRouter.post("/tickets/:id/claim", requireRole("tecnico"), (req, res) => {
   const result = claimTicket(req.params.id, req.user!);
   if (!result.ok) {
     if (result.reason === "not_found") {
@@ -69,7 +39,7 @@ ticketsRouter.post("/tickets/:id/claim", requireRole("manutencao"), (req, res) =
 
 ticketsRouter.post(
   "/tickets/:id/close",
-  requireRole("manutencao", "team-leader"),
+  requireRole("tecnico", "administrador"),
   (req, res) => {
     const result = closeTicket(req.params.id, req.user!);
     if (!result.ok) {
@@ -93,6 +63,6 @@ ticketsRouter.get("/dossie/:maquina", (req, res) => {
   res.json(getDossie(maquina));
 });
 
-ticketsRouter.get("/mttr-real", requireRole("team-leader"), (_req, res) => {
+ticketsRouter.get("/mttr-real", requireRole("administrador"), (_req, res) => {
   res.json(getRealDemoMttr());
 });

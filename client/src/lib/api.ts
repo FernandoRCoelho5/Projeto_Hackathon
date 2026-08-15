@@ -5,7 +5,7 @@ import type { AuthUser, Dossie, MaintenanceEvent, Machine, Ticket, TipoEventoMan
 // Em dev, o proxy do Vite encaminha /api pro server local (vite.config.ts).
 // Em produção, se client e server forem projetos Vercel separados (domínios
 // diferentes), defina VITE_API_URL com a URL pública da API.
-const BASE = import.meta.env.VITE_API_URL ?? "/api";
+export const BASE = import.meta.env.VITE_API_URL ?? "/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
@@ -35,11 +35,6 @@ export const api = {
   logout: () => request<{ ok: true }>("/auth/logout", { method: "POST" }),
   getMachines: () => request<Machine[]>("/machines"),
   getTickets: () => request<Ticket[]>("/tickets"),
-  createTicket: (maquina: string, descricao: string) =>
-    request<Ticket>("/tickets", {
-      method: "POST",
-      body: JSON.stringify({ maquina, descricao }),
-    }),
   simulateTicket: () => request<Ticket>("/tickets/simulate", { method: "POST" }),
   claimTicket: (id: string) => request<Ticket>(`/tickets/${id}/claim`, { method: "POST" }),
   closeTicket: (id: string) => request<Ticket>(`/tickets/${id}/close`, { method: "POST" }),

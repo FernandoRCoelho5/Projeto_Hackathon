@@ -87,7 +87,7 @@ export function closeTicket(id: string, user: AuthUser): CloseResult {
   if (ticket.status === "fechado") return { ok: false, reason: "already_closed" };
 
   const isOwner = ticket.assumidoPor?.id === user.id;
-  if (user.role === "manutencao" && !isOwner) {
+  if (user.role === "tecnico" && !isOwner) {
     return { ok: false, reason: "not_owner" };
   }
 
@@ -140,7 +140,7 @@ export function getDossie(maquina: string): Dossie {
 
 /**
  * MTTR médio apenas dos chamados fechados AO VIVO durante esta sessão (exclui
- * o histórico de seed) — é o número que prova o ganho de velocidade do Aciona
+ * o histórico de seed) — é o número que prova o ganho de velocidade do OpSync
  * na calculadora de impacto, em vez de diluir com dados pré-carregados.
  */
 export function getRealDemoMttr(): { averageMs: number | null; count: number } {

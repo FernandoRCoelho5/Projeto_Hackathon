@@ -1,9 +1,11 @@
-# Aciona
+# OpSync
 
-MVP de acionamento de manutenção para fábricas automotivas. Em vez do fluxo
-sequencial (funcionário → team leader → manutenção), o Aciona notifica todo
-mundo ao mesmo tempo via um painel compartilhado, classifica o problema com
-IA e atribui o técnico certo automaticamente.
+MVP de acionamento de manutenção para fábricas automotivas. O chamado é
+aberto automaticamente a partir da leitura de um CLP (simulada), sem
+depender de alguém reportar o problema manualmente: todo mundo com acesso ao
+painel vê o chamado ao mesmo tempo, o técnico responsável é notificado com
+um alerta cronometrado, e cada máquina carrega seu próprio histórico e
+documentação técnica.
 
 ## Stack
 
@@ -42,12 +44,11 @@ client/src/
   App.tsx            rotas (react-router) + regras de "quem vê o quê"
   pages/              uma tela por arquivo, mapeadas em App.tsx
     Login.tsx           tela pública, sem auth
-    Panel.tsx           /painel — fila de chamados, assumir, simular
-    Report.tsx          /reportar — abrir chamado manualmente (chama IA)
+    Panel.tsx           /painel — fila de chamados, alerta cronometrado do técnico, simular
     EmAndamento.tsx      /em-andamento — chamados assumidos, encerrar
-    Registro.tsx         /registro — histórico + eventos de manutenção por máquina
+    Registro.tsx         /registro — setor → máquina, histórico, problemas recorrentes
     Calculator.tsx       /calculadora — calculadora de impacto (MTTR/MTBF)
-  components/         peças reutilizáveis entre telas (cards, badges, timer, navbar)
+  components/         peças reutilizáveis entre telas (cards, badges, timer, countdown, navbar, logo)
   components/ui/      componentes de UI "soltos" (estilo shadcn), ex.: hero-section-dark.tsx
   lib/
     api.ts              client HTTP (fetch) + hooks de polling (useTickets, useMachines...)
@@ -62,9 +63,9 @@ server/src/
   auth.ts             sessões (token opaco em Map) + middlewares requireAuth/requireRole
   store.ts            "banco de dados" em memória: tickets, eventos de manutenção
   simulation.ts        gerador de chamado simulado + timer do "Modo automático"
-  ai.ts               chamada à API da Anthropic pra classificar chamado (com fallback heurístico)
-  routes/             um router por recurso (auth, tickets, simulation, maintenanceEvents, meta)
-  data/                dados estáticos: usuários demo, máquinas, técnicos, códigos de falha, seed
+  pdf.ts               gerador de PDF simples (título + seções) via pdfkit
+  routes/             um router por recurso (auth, tickets, simulation, maintenanceEvents, meta, documents)
+  data/                dados estáticos: usuários demo, máquinas, técnicos, códigos de falha, protocolos, seed
 
 server/api/index.ts  entrypoint serverless (Vercel) — importa o mesmo app.ts
 ```
@@ -72,52 +73,54 @@ server/api/index.ts  entrypoint serverless (Vercel) — importa o mesmo app.ts
 ## Telas por papel
 
 O acesso é por login (usuário + senha), com uma hierarquia de permissões aplicada também no
-servidor — não é só esconder botão na tela.
+servidor — não é só esconder botão na tela. Só existem duas contas: **Administrador** (visão
+gerencial, dados apurados) e **Técnico** (executa a manutenção). Não há reporte manual de
+problema no protótipo — o chamado é sempre acionado automaticamente (CLP simulado).
 
 | Tela | Rota | Quem vê |
 |---|---|---|
 | Painel | `/painel` | todos |
-| Reportar | `/reportar` | Funcionário, Team Leader |
-| Em andamento | `/em-andamento` | Manutenção, Team Leader |
+| Em andamento | `/em-andamento` | todos |
 | Registro | `/registro` | todos |
-| Calculadora de impacto | `/calculadora` | Team Leader |
+| Calculadora de impacto | `/calculadora` | Administrador |
 
-Contas de teste, uma por persona (login e senha preenchem sozinhos na tela de Login):
+Contas de teste (login e senha preenchem sozinhos na tela de Login):
 
 | Usuário | Senha | Papel | Pode |
 |---|---|---|---|
-| `joao` | `1234` | Funcionário | Ver o Painel, reportar problema, ver o Registro |
-| `marina` | `1234` | Team Leader | Tudo do funcionário + Em andamento, forçar encerramento de chamado, registrar evento de manutenção, simular incidente / modo automático, Calculadora de impacto |
-| `carlos` | `1234` | Manutenção (Elétrica) | Ver o Painel, assumir chamado, encerrar o que assumiu, ver Em andamento e o Registro |
-| `ana` | `1234` | Manutenção (Mecânica) | Igual ao Carlos |
-| `rafael` | `1234` | Manutenção (Hidráulica) | Igual ao Carlos |
+| `marina` | `1234` | Administrador | Painel (simular incidente / modo automático), Em andamento (forçar encerramento), Registro (registrar evento de manutenção), Calculadora de impacto |
+| `carlos` | `1234` | Técnico (Elétrica) | Receber alerta de chamado, aceitar/recusar, assumir chamado, encerrar o que assumiu, ver Em andamento e o Registro |
+| `ana` | `1234` | Técnico (Mecânica) | Igual ao Carlos |
+| `rafael` | `1234` | Técnico (Hidráulica) | Igual ao Carlos |
 
-Só quem assumiu um chamado ("Assumir chamado" no Painel) pode encerrá-lo — outro manutentor vê
-"Em atendimento por fulano" na tela Em andamento, sem poder mexer. Team Leader pode forçar o
-encerramento de qualquer chamado.
+Quando um chamado é aberto pro técnico responsável pela especialidade, ele aparece destacado no
+Painel com um contador regressivo (90s) pra aceitar — se o tempo expira ou o técnico recusa, o
+chamado cai na fila geral (visível e assumível por qualquer técnico). Só quem assumiu um chamado
+pode encerrá-lo — outro técnico vê "Em atendimento por fulano" na tela Em andamento, sem poder
+mexer. Administrador pode forçar o encerramento de qualquer chamado.
 
-## Classificação por IA
+## Manual da máquina e protocolo de correção
 
-O reporte manual de problema (`server/src/ai.ts`) chama a API da Anthropic
-(`claude-opus-5`) para classificar prioridade, especialidade e checklist. Sem
-uma chave configurada, o sistema usa automaticamente um classificador
-heurístico local (por palavras-chave em português) — o app funciona igual, só
-que sem IA de verdade. Ver [Variáveis de ambiente](#variáveis-de-ambiente).
+Cada chamado, no Painel e em Em andamento, tem links pra dois PDFs gerados pelo servidor
+(`server/src/pdf.ts`): o manual da máquina (`GET /api/documents/manual/:maquina`, dados de
+`server/src/data/machines.ts`) e o protocolo de correção daquele problema específico
+(`GET /api/documents/protocolo?especialidade=&codigo=`, `server/src/data/protocols.ts` — um
+protocolo por código de falha, com fallback genérico por especialidade). São rotas públicas
+(sem auth) por serem material de referência, o que permite abrir direto num `<a href>` em nova
+aba.
 
 ## Modo simulação
 
-No Painel, "Simular incidente" gera um chamado a partir de uma tabela fixa de
-códigos de falha (`server/src/data/faultCodes.ts`, sem IA — simula a leitura
-de um CLP). O toggle "Modo automático" (`server/src/simulation.ts`) liga um
-gerador em background no servidor (a cada 12-18s), visível para todo mundo
-que estiver olhando o painel.
+No Painel, "Simular incidente" (só Administrador) gera um chamado a partir de uma tabela fixa de
+códigos de falha (`server/src/data/faultCodes.ts` — simula a leitura de um CLP). O toggle "Modo
+automático" (`server/src/simulation.ts`) liga um gerador em background no servidor (a cada
+12-18s), visível para todo mundo que estiver olhando o painel.
 
 ## Variáveis de ambiente
 
 Cada pasta tem seu `.env.example`. Copie pra `.env` (já ignorado pelo git) e preencha:
 
 - **`server/.env.example`**
-  - `ANTHROPIC_API_KEY` — opcional, liga a classificação por IA real.
   - `PORT` — porta do backend em dev (padrão 3001).
   - `DATABASE_URL` / `NEXTAUTH_SECRET` — placeholders pra próxima etapa (Neon
     Postgres + sessão assinada). **Ainda não usados no código**: hoje tickets,

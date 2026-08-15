@@ -2,13 +2,13 @@ import { useState } from "react";
 import { ROLE_LABELS } from "../lib/auth";
 import type { Role } from "../lib/types";
 import { HeroSection, RetroGrid } from "../components/ui/hero-section-dark";
+import { Logo } from "../components/Logo";
 
 const DEMO_ACCOUNTS: { username: string; senha: string; nome: string; role: Role; icon: string }[] = [
-  { username: "joao", senha: "1234", nome: "João", role: "funcionario", icon: "🛠" },
-  { username: "marina", senha: "1234", nome: "Marina", role: "team-leader", icon: "📋" },
-  { username: "carlos", senha: "1234", nome: "Carlos · Elétrica", role: "manutencao", icon: "🔧" },
-  { username: "ana", senha: "1234", nome: "Ana · Mecânica", role: "manutencao", icon: "🔧" },
-  { username: "rafael", senha: "1234", nome: "Rafael · Hidráulica", role: "manutencao", icon: "🔧" },
+  { username: "marina", senha: "1234", nome: "Marina", role: "administrador", icon: "🛡" },
+  { username: "carlos", senha: "1234", nome: "Carlos · Elétrica", role: "tecnico", icon: "🔧" },
+  { username: "ana", senha: "1234", nome: "Ana · Mecânica", role: "tecnico", icon: "🔧" },
+  { username: "rafael", senha: "1234", nome: "Rafael · Hidráulica", role: "tecnico", icon: "🔧" },
 ];
 
 export function Login({
@@ -46,7 +46,20 @@ export function Login({
       <RetroGrid />
 
       <div className="relative">
-        <HeroSection title="ACIONA" ctaText="Fazer login" ctaHref="#login-form" />
+        <div className="flex justify-center pt-10">
+          <Logo size="lg" />
+        </div>
+
+        <HeroSection
+          title="OPSYNC"
+          subtitle={{
+            regular: "Conectamos operações, ",
+            gradient: "sincronizamos processos e impulsionamos resultados.",
+          }}
+          description="Chamados de manutenção acionados automaticamente pelo CLP, técnico certo notificado na hora e o histórico completo de cada máquina num só lugar."
+          ctaText="Fazer login"
+          ctaHref="#login-form"
+        />
 
         <div
           id="login-form"
@@ -65,7 +78,7 @@ export function Login({
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
-                placeholder="ex.: joao"
+                placeholder="ex.: marina"
                 className="w-full rounded-lg border border-base-600 bg-base-900 px-3 py-2.5 text-white placeholder:text-slate-500 focus:border-accent-500 focus:outline-none"
               />
             </div>

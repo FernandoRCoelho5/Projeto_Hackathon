@@ -83,7 +83,7 @@ export function Calculator() {
           tone="critical"
         />
         <StatTile
-          label="Lucro cessante mensal com Aciona"
+          label="Lucro cessante mensal com OpSync"
           value={perdaMensalReal !== null ? formatCurrencyBRL(perdaMensalReal) : "—"}
           hint={
             realMttr.count > 0
@@ -100,7 +100,7 @@ export function Calculator() {
           value={economiaMensal !== null ? formatCurrencyBRL(economiaMensal) : "—"}
           hint={
             economiaMensal !== null
-              ? "Diferença entre o processo atual e o MTTR real com o Aciona"
+              ? "Diferença entre o processo atual e o MTTR real com o OpSync"
               : "Aparece assim que houver um chamado encerrado nesta sessão"
           }
           tone="ok"
@@ -114,13 +114,13 @@ export function Calculator() {
           </p>
           <div className="space-y-3">
             <BarRow
-              label="Hoje (sem Aciona)"
+              label="Hoje (sem OpSync)"
               value={formatCurrencyBRL(perdaMensalAtual)}
               widthPct={100}
               colorClass="bg-critical-500"
             />
             <BarRow
-              label="Com Aciona"
+              label="Com OpSync"
               value={formatCurrencyBRL(perdaMensalReal)}
               widthPct={barReal}
               colorClass="bg-ok-500"

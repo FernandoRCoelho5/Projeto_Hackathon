@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api, useMachines, useSimulationStatus, useTickets } from "../lib/api";
 import { TicketCard } from "../components/TicketCard";
+import { ACCEPT_WINDOW_MS, TicketAlertCard } from "../components/TicketAlertCard";
 import type { AuthUser, Prioridade } from "../lib/types";
 
 const PRIORITY_ORDER: Record<Prioridade, number> = { Vermelho: 0, Amarelo: 1, Verde: 2 };
@@ -12,6 +13,7 @@ export function Panel({ user }: { user: AuthUser }) {
   const [simulating, setSimulating] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   const waiting = tickets
     .filter((t) => t.status === "aberto")
@@ -20,6 +22,17 @@ export function Panel({ user }: { user: AuthUser }) {
       if (priorityDiff !== 0) return priorityDiff;
       return a.abertoEm < b.abertoEm ? -1 : 1;
     });
+
+  const isAlertForUser = (id: string, abertoEm: string) =>
+    user.role === "tecnico" &&
+    !dismissed.has(id) &&
+    Date.now() - new Date(abertoEm).getTime() < ACCEPT_WINDOW_MS;
+
+  const alertTickets =
+    user.role === "tecnico"
+      ? waiting.filter((t) => t.tecnico.id === user.id && isAlertForUser(t.id, t.abertoEm))
+      : [];
+  const queueTickets = waiting.filter((t) => !alertTickets.includes(t));
 
   async function handleSimulate() {
     setSimulating(true);
@@ -53,6 +66,10 @@ export function Panel({ user }: { user: AuthUser }) {
     }
   }
 
+  function handleDismiss(id: string) {
+    setDismissed((prev) => new Set(prev).add(id));
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -64,7 +81,7 @@ export function Panel({ user }: { user: AuthUser }) {
           </p>
         </div>
 
-        {user.role === "team-leader" && (
+        {user.role === "administrador" && (
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleSimulate}
@@ -101,20 +118,52 @@ export function Panel({ user }: { user: AuthUser }) {
         <div className="mt-16 flex flex-col items-center justify-center gap-2 text-center">
           <p className="text-lg font-semibold text-slate-300">Nenhum chamado aguardando</p>
           <p className="text-sm text-slate-500">
-            Reporte um problema ou simule um incidente para ver o painel em ação.
+            Assim que o CLP acionar um novo chamado (ou você simular um incidente), ele aparece
+            aqui.
           </p>
         </div>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {waiting.map((ticket) => (
-            <TicketCard
-              key={ticket.id}
-              ticket={ticket}
-              machine={machines.find((m) => m.nome === ticket.maquina)}
-              onClaim={user.role === "manutencao" ? handleClaim : undefined}
-            />
-          ))}
-        </div>
+        <>
+          {alertTickets.length > 0 && (
+            <div className="mt-6">
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-critical-500">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-critical-500" />
+                Chamados para você ({alertTickets.length})
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {alertTickets.map((ticket) => (
+                  <TicketAlertCard
+                    key={ticket.id}
+                    ticket={ticket}
+                    machine={machines.find((m) => m.nome === ticket.maquina)}
+                    onClaim={handleClaim}
+                    onDismiss={handleDismiss}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {queueTickets.length > 0 && (
+            <div className="mt-8">
+              {alertTickets.length > 0 && (
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+                  Fila de manutenção
+                </h2>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {queueTickets.map((ticket) => (
+                  <TicketCard
+                    key={ticket.id}
+                    ticket={ticket}
+                    machine={machines.find((m) => m.nome === ticket.maquina)}
+                    onClaim={user.role === "tecnico" ? handleClaim : undefined}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

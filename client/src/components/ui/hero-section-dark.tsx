@@ -58,12 +58,12 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
   (
     {
       className,
-      title = "Acionamento simultâneo de manutenção",
+      title = "OPSYNC",
       subtitle = {
-        regular: "Chega de fila. Chega de espera — ",
-        gradient: "todo mundo é acionado ao mesmo tempo.",
+        regular: "Conectamos operações, ",
+        gradient: "sincronizamos processos e impulsionamos resultados.",
       },
-      description = "O Aciona notifica funcionário, team leader e manutenção simultaneamente, classifica o problema com IA e atribui o técnico certo automaticamente.",
+      description = "Chamados de manutenção acionados automaticamente pelo CLP, técnico certo notificado na hora e o histórico completo de cada máquina num só lugar.",
       ctaText = "Fazer login",
       ctaHref = "#login-form",
       ...props

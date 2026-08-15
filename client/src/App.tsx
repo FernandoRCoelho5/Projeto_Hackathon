@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { NavBar } from "./components/NavBar";
 import { Login } from "./pages/Login";
-import { Report } from "./pages/Report";
 import { Panel } from "./pages/Panel";
 import { EmAndamento } from "./pages/EmAndamento";
 import { Registro } from "./pages/Registro";
@@ -15,9 +14,7 @@ export default function App() {
     return <Login onLogin={login} />;
   }
 
-  const canReport = user.role === "funcionario" || user.role === "team-leader";
-  const canSeeEmAndamento = user.role === "manutencao" || user.role === "team-leader";
-  const canSeeCalculadora = user.role === "team-leader";
+  const canSeeCalculadora = user.role === "administrador";
 
   return (
     <div className="min-h-dvh bg-base-950">
@@ -26,10 +23,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/painel" replace />} />
           <Route path="/painel" element={<Panel user={user} />} />
-          {canReport && <Route path="/reportar" element={<Report />} />}
-          {canSeeEmAndamento && (
-            <Route path="/em-andamento" element={<EmAndamento user={user} />} />
-          )}
+          <Route path="/em-andamento" element={<EmAndamento user={user} />} />
           <Route path="/registro" element={<Registro user={user} />} />
           {canSeeCalculadora && <Route path="/calculadora" element={<Calculator />} />}
           <Route path="*" element={<Navigate to="/painel" replace />} />

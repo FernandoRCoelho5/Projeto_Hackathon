@@ -5,6 +5,7 @@ import { SpecialtyBadge } from "./SpecialtyBadge";
 import { MachineChip } from "./MachineChip";
 import { Timer } from "./Timer";
 import { formatDateTime } from "../lib/format";
+import { BASE } from "../lib/api";
 
 const PRIORITY_RING: Record<Ticket["prioridade"], string> = {
   Vermelho: "border-l-critical-500",
@@ -103,6 +104,25 @@ export function TicketCard({
           </ul>
         </div>
       )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <a
+          href={`${BASE}/documents/manual/${encodeURIComponent(ticket.maquina)}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-base-600 bg-base-900/60 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:border-accent-500 hover:text-white"
+        >
+          📘 Manual da máquina
+        </a>
+        <a
+          href={`${BASE}/documents/protocolo?especialidade=${encodeURIComponent(ticket.especialidade)}${ticket.codigoFalha ? `&codigo=${encodeURIComponent(ticket.codigoFalha)}` : ""}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-base-600 bg-base-900/60 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:border-accent-500 hover:text-white"
+        >
+          📗 Protocolo de correção
+        </a>
+      </div>
 
       <div className="mt-auto flex items-center justify-between gap-3 border-t border-base-700 pt-3">
         <p className="text-sm text-slate-300">

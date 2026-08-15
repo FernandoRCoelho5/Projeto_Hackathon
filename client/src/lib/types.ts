@@ -2,7 +2,7 @@ export type Prioridade = "Vermelho" | "Amarelo" | "Verde";
 export type Especialidade = "Elétrica" | "Mecânica" | "Hidráulica";
 export type Origem = "manual" | "simulado";
 export type TipoSimulacao = "reativo" | "preventivo";
-export type Role = "funcionario" | "team-leader" | "manutencao";
+export type Role = "administrador" | "tecnico";
 export type Criticidade = "alta" | "media" | "baixa";
 export type TipoEventoManutencao = "reparo" | "troca_peca" | "preventiva" | "outro";
 

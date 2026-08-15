@@ -4,9 +4,8 @@ import { clearSession, getStoredUser, getToken, setSession } from "./session";
 import type { AuthUser, Role } from "./types";
 
 export const ROLE_LABELS: Record<Role, string> = {
-  funcionario: "Funcionário",
-  "team-leader": "Team Leader",
-  manutencao: "Manutenção",
+  administrador: "Administrador",
+  tecnico: "Técnico",
 };
 
 export function useAuth() {
