@@ -4,6 +4,7 @@ import { Login } from "./pages/Login";
 import { Panel } from "./pages/Panel";
 import { EmAndamento } from "./pages/EmAndamento";
 import { Registro } from "./pages/Registro";
+import { Equipamentos } from "./pages/Equipamentos";
 import { Calculator } from "./pages/Calculator";
 import { useAuth } from "./lib/auth";
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/painel" element={<Panel user={user} />} />
           <Route path="/em-andamento" element={<EmAndamento user={user} />} />
           <Route path="/registro" element={<Registro user={user} />} />
+          <Route path="/equipamentos" element={<Equipamentos user={user} />} />
           {canSeeCalculadora && <Route path="/calculadora" element={<Calculator />} />}
           <Route path="*" element={<Navigate to="/painel" replace />} />
         </Routes>

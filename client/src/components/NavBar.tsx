@@ -7,6 +7,7 @@ const LINKS: { to: string; label: string; roles: Role[] }[] = [
   { to: "/painel", label: "Painel", roles: ["administrador", "tecnico"] },
   { to: "/em-andamento", label: "Em andamento", roles: ["administrador", "tecnico"] },
   { to: "/registro", label: "Registro", roles: ["administrador", "tecnico"] },
+  { to: "/equipamentos", label: "Equipamentos", roles: ["administrador", "tecnico"] },
   { to: "/calculadora", label: "Impacto", roles: ["administrador"] },
 ];
 

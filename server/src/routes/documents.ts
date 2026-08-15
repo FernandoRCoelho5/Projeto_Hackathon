@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { getMachineByName } from "../data/machines.js";
 import { getProtocol } from "../data/protocols.js";
-import { renderTextPdf } from "../pdf.js";
-import type { Criticidade, Especialidade } from "../types.js";
+import { renderTextPdf, type PdfSection } from "../pdf.js";
+import { getMaintenanceEventById, getTicketById } from "../store.js";
+import type { Criticidade, Especialidade, TipoEventoManutencao } from "../types.js";
 
 export const documentsRouter = Router();
 
@@ -10,6 +11,13 @@ const CRITICIDADE_LABELS: Record<Criticidade, string> = {
   alta: "Alta",
   media: "Média",
   baixa: "Baixa",
+};
+
+const TIPO_EVENTO_LABELS: Record<TipoEventoManutencao, string> = {
+  reparo: "Reparo",
+  troca_peca: "Troca de peça",
+  preventiva: "Manutenção preventiva",
+  outro: "Outro",
 };
 
 documentsRouter.get("/documents/manual/:maquina", async (req, res) => {
@@ -77,5 +85,68 @@ documentsRouter.get("/documents/protocolo", async (req, res) => {
     "Content-Disposition",
     `inline; filename="protocolo-${codigo ?? especialidade ?? "geral"}.pdf"`,
   );
+  res.send(pdf);
+});
+
+documentsRouter.get("/documents/relatorio-manutencao/:eventoId", async (req, res) => {
+  const evento = getMaintenanceEventById(req.params.eventoId);
+  if (!evento) {
+    res.status(404).json({ error: "Evento de manutenção não encontrado." });
+    return;
+  }
+
+  const machine = getMachineByName(evento.maquina);
+  const ticket = evento.ticketId ? getTicketById(evento.ticketId) : undefined;
+
+  const secoes: PdfSection[] = [
+    {
+      heading: "Máquina",
+      lines: [
+        `Nome: ${evento.maquina}`,
+        ...(machine
+          ? [
+              `Setor: ${machine.setor}`,
+              `Modelo: ${machine.modelo}`,
+              `Fabricante: ${machine.fabricante}`,
+              `Criticidade: ${CRITICIDADE_LABELS[machine.criticidade]}`,
+            ]
+          : []),
+      ],
+    },
+    {
+      heading: "Manutenção realizada",
+      lines: [
+        `Tipo: ${TIPO_EVENTO_LABELS[evento.tipo]}`,
+        `Descrição: ${evento.descricao}`,
+        ...(evento.pecasTrocadas && evento.pecasTrocadas.length > 0
+          ? [`Peças trocadas: ${evento.pecasTrocadas.join(", ")}`]
+          : []),
+        `Registrado por: ${evento.registradoPor.nome}`,
+        `Data: ${new Date(evento.criadoEm).toLocaleString("pt-BR")}`,
+      ],
+    },
+  ];
+
+  if (ticket) {
+    secoes.push({
+      heading: "Chamado relacionado",
+      lines: [
+        ...(ticket.codigoFalha ? [`Código de falha: ${ticket.codigoFalha}`] : []),
+        `Descrição: ${ticket.descricao}`,
+        `Aberto em: ${new Date(ticket.abertoEm).toLocaleString("pt-BR")}`,
+        ...(ticket.fechadoEm ? [`Encerrado em: ${new Date(ticket.fechadoEm).toLocaleString("pt-BR")}`] : []),
+        ...(ticket.mttrMs !== null ? [`MTTR: ${Math.round(ticket.mttrMs / 60000)} min`] : []),
+      ],
+    });
+  }
+
+  const pdf = await renderTextPdf({
+    titulo: `Relatório de Manutenção — ${evento.maquina}`,
+    subtitulo: `${TIPO_EVENTO_LABELS[evento.tipo]} · ${new Date(evento.criadoEm).toLocaleDateString("pt-BR")}`,
+    secoes,
+  });
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `inline; filename="relatorio-${evento.id}.pdf"`);
   res.send(pdf);
 });

@@ -158,6 +158,14 @@ export function listMaintenanceEvents(maquina: string): MaintenanceEvent[] {
     .sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1));
 }
 
+export function getMaintenanceEventById(id: string): MaintenanceEvent | undefined {
+  return maintenanceEvents.find((e) => e.id === id);
+}
+
+export function getTicketById(id: string): Ticket | undefined {
+  return tickets.find((t) => t.id === id);
+}
+
 export interface CreateMaintenanceEventInput {
   maquina: string;
   tipo: TipoEventoManutencao;
