@@ -42,13 +42,13 @@ const RetroGrid = ({
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
       <div className="absolute top-0 h-full w-full bg-accent-600/10 bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(59,125,255,0.2),rgba(5,7,13,0))]" />
       <div
-        className={cn("absolute size-full overflow-hidden [perspective:200px]", "opacity-[var(--opacity)]")}
+        className={cn("absolute size-full overflow-hidden perspective-[200px]", "opacity-(--opacity)")}
         style={gridStyles}
       >
-        <div className="absolute inset-0 [transform:rotateX(var(--grid-angle))]">
-          <div className="animate-grid [background-image:linear-gradient(to_right,var(--line-color)_1px,transparent_0),linear-gradient(to_bottom,var(--line-color)_1px,transparent_0)] [background-repeat:repeat] [background-size:var(--cell-size)_var(--cell-size)] [height:300vh] [inset:0%_0px] [margin-left:-200%] [transform-origin:100%_0_0] [width:600vw]" />
+        <div className="absolute inset-0 transform-[rotateX(var(--grid-angle))]">
+          <div className="animate-grid bg-[linear-gradient(to_right,var(--line-color)_1px,transparent_0),linear-gradient(to_bottom,var(--line-color)_1px,transparent_0)] bg-repeat bg-size-[var(--cell-size)_var(--cell-size)] h-[300vh] inset-[0%_0px] ml-[-200%] origin-[100%_0_0] w-[600vw]" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-base-950 to-transparent to-90%" />
+        <div className="absolute inset-0 bg-linear-to-t from-base-950 to-transparent to-90%" />
       </div>
     </div>
   );
@@ -72,15 +72,15 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
   ) => {
     return (
       <section className={cn("relative z-10 mx-auto max-w-full", className)} ref={ref} {...props}>
-        <div className="z-10 mx-auto max-w-screen-xl gap-12 px-4 py-20 md:px-8">
+        <div className="z-10 mx-auto max-w-7xl gap-12 px-4 py-20 md:px-8">
             <div className="mx-auto max-w-3xl space-y-5 text-center leading-0 lg:leading-5">
-              <h1 className="font-industrial group mx-auto w-fit rounded-3xl border-[1px] border-base-700 bg-base-800/60 px-5 py-2 text-sm text-slate-400">
+              <h1 className="font-industrial group mx-auto w-fit rounded-3xl border border-base-700 bg-base-800/60 px-5 py-2 text-sm text-slate-400">
                 {title}
                 <ChevronRight className="ml-2 inline h-4 w-4 duration-300 group-hover:translate-x-1" />
               </h1>
-              <h2 className="font-industrial mx-auto bg-[linear-gradient(180deg,_#FFF_0%,_rgba(255,_255,_255,_0.7)_100%)] bg-clip-text text-4xl tracking-tighter text-transparent md:text-6xl">
+              <h2 className="font-industrial mx-auto bg-linear-to-b from-white to-white/70 bg-clip-text text-4xl tracking-tighter text-transparent md:text-6xl">
                 {subtitle.regular}
-                <span className="bg-gradient-to-r from-accent-400 to-accent-600 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-accent-400 to-accent-600 bg-clip-text text-transparent">
                   {subtitle.gradient}
                 </span>
               </h2>
@@ -91,7 +91,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                   <div className="inline-flex h-full w-full items-center justify-center rounded-full bg-base-900 text-xs font-medium backdrop-blur-3xl">
                     <a
                       href={ctaHref}
-                      className="group inline-flex w-full items-center justify-center rounded-full border-[1px] border-base-600 bg-base-800 px-10 py-4 text-center font-bold uppercase tracking-wide text-white transition-all hover:bg-accent-600 sm:w-auto"
+                      className="group inline-flex w-full items-center justify-center rounded-full border border-base-600 bg-base-800 px-10 py-4 text-center font-bold uppercase tracking-wide text-white transition-all hover:bg-accent-600 sm:w-auto"
                     >
                       {ctaText}
                       <ChevronRight className="ml-1 inline h-4 w-4 duration-300 group-hover:translate-x-1" />
